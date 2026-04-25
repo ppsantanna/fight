@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Street Fighter style fighting game - Battle Arena">
+    <title>Battle Arena - Fighting Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Title Screen -->
+        <div id="title-screen" class="screen active">
+            <div class="title-bg"></div>
+            <div class="title-content">
+                <h1 class="game-title">
+                    <span class="title-battle">BATTLE</span>
+                    <span class="title-arena">ARENA</span>
+                </h1>
+                <p class="subtitle">STREET EDITION</p>
+                <button id="btn-start" class="arcade-btn pulse">PRESS START</button>
+                <button id="btn-settings" class="arcade-btn secondary">SETTINGS</button>
+                <div class="controls-hint">
+                    <div class="hint-group">
+                        <span class="hint-label">CONTROLES</span>
+                        <span>Setas: Mover/Pular/Agachar</span>
+                    </div>
+                    <div class="hint-group">
+                        <span class="hint-label">ATAQUES</span>
+                        <span>F: Soco | G: Chute | H: Defesa | R: Magia</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <div id="game-bg"></div>
+            <!-- HUD -->
+            <div id="hud">
+                <div class="player-hud" id="hud-p1">
+                    <div class="player-name">PLAYER 1</div>
+                    <div class="health-bar-container">
+                        <div class="health-bar" id="health-p1">
+                            <div class="health-fill"></div>
+                            <div class="health-damage"></div>
+                        </div>
+                    </div>
+                    <div class="special-bar-container">
+                        <div class="special-bar" id="special-p1">
+                            <div class="special-fill"></div>
+                        </div>
+                        <span class="special-label">SP</span>
+                    </div>
+                    <div class="round-wins" id="wins-p1">
+                        <span class="win-dot"></span>
+                        <span class="win-dot"></span>
+                    </div>
+                </div>
+
+                <div class="center-hud">
+                    <div id="timer" class="timer">99</div>
+                    <div id="round-label" class="round-label">ROUND 1</div>
+                </div>
+
+                <div class="player-hud" id="hud-p2">
+                    <div class="player-name">CPU</div>
+                    <div class="health-bar-container">
+                        <div class="health-bar" id="health-p2">
+                            <div class="health-fill"></div>
+                            <div class="health-damage"></div>
+                        </div>
+                    </div>
+                    <div class="special-bar-container">
+                        <div class="special-bar" id="special-p2">
+                            <div class="special-fill"></div>
+                        </div>
+                        <span class="special-label">SP</span>
+                    </div>
+                    <div class="round-wins" id="wins-p2">
+                        <span class="win-dot"></span>
+                        <span class="win-dot"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Canvas -->
+            <canvas id="game-canvas"></canvas>
+
+            <!-- Overlay Messages -->
+            <div id="overlay" class="overlay hidden">
+                <div id="overlay-text" class="overlay-text"></div>
+            </div>
+
+            <!-- Combo display -->
+            <div id="combo-p1" class="combo-display left hidden"></div>
+            <div id="combo-p2" class="combo-display right hidden"></div>
+
+            <!-- Hit effects -->
+            <div id="hit-effects"></div>
+        </div>
+
+        <!-- Victory Screen -->
+        <div id="victory-screen" class="screen">
+            <div class="victory-content">
+                <h2 id="victory-text" class="victory-text"></h2>
+                <div class="victory-subtitle"></div>
+                <button id="btn-rematch" class="arcade-btn">REMATCH</button>
+                <button id="btn-menu" class="arcade-btn secondary">MAIN MENU</button>
+            </div>
+        </div>
+
+        <!-- Settings Screen -->
+        <div id="settings-screen" class="screen">
+            <div class="settings-content">
+                <h2 class="settings-title">CONFIGURAÇÕES</h2>
+                
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <label>TAMANHO JOGADOR (Fator)</label>
+                        <input type="range" id="set-fighter-scale" min="0.5" max="2.0" step="0.1" value="1.0">
+                        <span id="val-fighter-scale">1.0</span>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <label>TAMANHO MAGIA (Fator)</label>
+                        <input type="range" id="set-magic-scale" min="0.5" max="2.5" step="0.1" value="1.0">
+                        <span id="val-magic-scale">1.0</span>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <label>POSIÇÃO INICIAL (Y)</label>
+                        <input type="range" id="set-start-y" min="100" max="800" step="10" value="540">
+                        <span id="val-start-y">540</span>
+                    </div>
+
+                    <div class="setting-item">
+                        <label>VELOCIDADE CPU (Pensamento)</label>
+                        <input type="range" id="set-cpu-speed" min="0.1" max="2.0" step="0.1" value="1.0">
+                        <span id="val-cpu-speed">1.0</span>
+                    </div>
+
+                    <div class="setting-item">
+                        <label>FREQUÊNCIA DE ATAQUE CPU</label>
+                        <input type="range" id="set-cpu-attack" min="0.1" max="2.0" step="0.1" value="1.0">
+                        <span id="val-cpu-attack">1.0</span>
+                    </div>
+                </div>
+
+                <div class="settings-actions">
+                    <button id="btn-save-settings" class="arcade-btn">SALVAR E VOLTAR</button>
+                    <button id="btn-reset-settings" class="arcade-btn secondary">RESTAURAR PADRÃO</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="audio.js"></script>
+    <script src="fighter.js"></script>
+    <script src="cpu.js"></script>
+    <script src="game.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
