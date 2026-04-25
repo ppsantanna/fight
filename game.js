@@ -76,6 +76,7 @@ class Game {
         // Input
         this.keys = {};
         this.setupInput();
+        this.setupTouchControls();
 
         // Particles
         this.particles = [];
@@ -140,6 +141,156 @@ class Game {
             }
         });
     }
+
+    setupTouchControls() {
+        const touchContainer = document.getElementById('touch-controls');
+        if (!touchContainer) return;
+
+        // Detect touch support
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        if (isTouchDevice) {
+            touchContainer.classList.remove('hidden');
+        }
+
+        // Action Buttons
+        const buttons = {
+            'btn-touch-punch': 'KeyF',
+            'btn-touch-kick': 'KeyG',
+            'btn-touch-block': 'KeyH',
+            'btn-touch-magic': 'KeyR'
+        };
+
+        Object.entries(buttons).forEach(([id, code]) => {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (this.state !== 'fighting') return;
+                
+                if (code === 'KeyF') {
+                    this.p1.punch();
+                } else if (code === 'KeyG') {
+                    this.p1.kick();
+                } else if (code === 'KeyR') {
+                    this.p1.magic();
+                } else if (code === 'KeyH') {
+                    this.p1.block();
+                    this.keys['KeyH'] = true;
+                }
+            });
+
+            btn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                if (code === 'KeyH') {
+                    this.p1.stopBlocking();
+                    this.keys['KeyH'] = false;
+                }
+            });
+        });
+
+        // Joystick (Full 360 Logic)
+        const stick = document.getElementById('joystick-stick');
+        const base = document.getElementById('joystick-base');
+        if (!stick || !base) return;
+
+        let activeTouchId = null;
+
+        const handleJoystick = (touch) => {
+            if (this.state !== 'fighting') return;
+            
+            const rect = base.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const maxDist = rect.width / 2;
+
+            let dx = touch.clientX - centerX;
+            let dy = touch.clientY - centerY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist > maxDist) {
+                dx *= maxDist / dist;
+                dy *= maxDist / dist;
+            }
+
+            stick.style.transform = `translate(${dx}px, ${dy}px)`;
+
+            // Horizontal (Move & Run)
+            if (Math.abs(dx) > 15) {
+                if (dx > 0) {
+                    this.keys['ArrowRight'] = true;
+                    this.keys['ArrowLeft'] = false;
+                    
+                    // Run if pushed to the extreme (85% of max radius)
+                    if (dx > maxDist * 0.85) {
+                        this.p1.run();
+                    } else {
+                        this.p1.moveForward();
+                    }
+                } else {
+                    this.keys['ArrowLeft'] = true;
+                    this.keys['ArrowRight'] = false;
+                    this.p1.moveBackward();
+                }
+            } else {
+                this.keys['ArrowLeft'] = false;
+                this.keys['ArrowRight'] = false;
+                if (this.p1.state !== STATES.CROUCH) {
+                    this.p1.stopMoving();
+                }
+            }
+
+            // Vertical (Jump & Crouch)
+            if (dy < -35) { // Jump (Up)
+                this.p1.jump();
+            } else if (dy > 35) { // Crouch (Down)
+                this.p1.crouch();
+                this.keys['ArrowDown'] = true;
+            } else {
+                if (this.keys['ArrowDown']) {
+                    this.keys['ArrowDown'] = false;
+                    this.p1.stopMoving();
+                }
+            }
+        };
+
+        base.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (activeTouchId === null) {
+                const touch = e.changedTouches[0];
+                activeTouchId = touch.identifier;
+                handleJoystick(touch);
+            }
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (activeTouchId !== null) {
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    if (e.changedTouches[i].identifier === activeTouchId) {
+                        handleJoystick(e.changedTouches[i]);
+                        break;
+                    }
+                }
+            }
+        }, { passive: false });
+
+        window.addEventListener('touchend', (e) => {
+            if (activeTouchId !== null) {
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    if (e.changedTouches[i].identifier === activeTouchId) {
+                        activeTouchId = null;
+                        stick.style.transform = 'translate(0, 0)';
+                        this.keys['ArrowLeft'] = false;
+                        this.keys['ArrowRight'] = false;
+                        this.keys['ArrowDown'] = false;
+                        this.p1.stopMoving();
+                        break;
+                    }
+                }
+            }
+        });
+    }
+
 
     start() {
         this.running = true;
