@@ -673,4 +673,4 @@ class Game {
         }
         ctx.globalAlpha = 1;
     }
-}
+} 
