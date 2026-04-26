@@ -1,0 +1,17 @@
+{
+  "name": "Battle Arena - Street Edition",
+  "short_name": "Battle Arena",
+  "description": "Fighting game in Street Fighter style.",
+  "start_url": "index.html",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#0a0a12",
+  "theme_color": "#ff2d55",
+  "icons": [
+    {
+      "src": "assets/images/fighter_a.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

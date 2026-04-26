@@ -46,11 +46,16 @@ body {
     color: var(--color-text);
     overflow: hidden;
     user-select: none;
+    touch-action: none;
+    -webkit-touch-callout: none;
 }
 
 /* ---- Game Container ---- */
 #game-container {
-    position: relative;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
     width: var(--game-width);
     height: var(--game-height);
     overflow: hidden;
@@ -60,6 +65,7 @@ body {
         0 0 30px rgba(255, 45, 85, 0.3),
         0 0 60px rgba(0, 212, 255, 0.2),
         inset 0 0 30px rgba(0, 0, 0, 0.5);
+    transform-origin: center center;
 }
 
 /* ---- Screens ---- */

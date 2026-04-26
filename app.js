@@ -127,8 +127,46 @@
     let damageTimeoutP1 = null;
     let damageTimeoutP2 = null;
 
+    // ---- Scaling & Fullscreen Management ----
+    const gameContainer = document.getElementById('game-container');
+    
+    function handleResize() {
+        const baseWidth = 1024;
+        const baseHeight = 600;
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        
+        // Calculate scale to fit the screen
+        const scaleX = windowWidth / baseWidth;
+        const scaleY = windowHeight / baseHeight;
+        const scale = Math.min(scaleX, scaleY);
+        
+        if (gameContainer) {
+            gameContainer.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        }
+    }
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    function requestFullscreenAndLandscape() {
+        const docEl = document.documentElement;
+        const requestFullscreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+        
+        if (requestFullscreen) {
+            requestFullscreen.call(docEl).then(() => {
+                if (screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('landscape').catch(err => console.log("Orientation lock failed:", err));
+                }
+            }).catch(err => console.log("Fullscreen request failed:", err));
+        }
+    }
+
     // ---- Start Game ----
     function startGame() {
+        requestFullscreenAndLandscape();
+        handleResize(); // recalculate after entering fullscreen
+        
         audio.init();
         audio.loadSFX('magic', 'assets/sounds/fighter_a_magic_s.mp3');
         setRandomBackground();
@@ -229,7 +267,7 @@
         };
 
         game.onShake = (intensity) => {
-            const container = document.getElementById('game-container');
+            const container = document.getElementById('game-screen');
             container.classList.remove('shake', 'heavy-shake');
             container.offsetHeight;
             container.classList.add(intensity === 'heavy' ? 'heavy-shake' : 'shake');

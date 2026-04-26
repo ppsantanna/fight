@@ -213,16 +213,21 @@ class Game {
                 dy *= maxDist / dist;
             }
 
-            stick.style.transform = `translate(${dx}px, ${dy}px)`;
+            // Un-scale dx and dy for local CSS transform
+            const scale = rect.width / base.offsetWidth;
+            const localDx = dx / scale;
+            const localDy = dy / scale;
+
+            stick.style.transform = `translate(${localDx}px, ${localDy}px)`;
 
             // Horizontal (Move & Run)
-            if (Math.abs(dx) > 15) {
-                if (dx > 0) {
+            if (Math.abs(localDx) > 15) {
+                if (localDx > 0) {
                     this.keys['ArrowRight'] = true;
                     this.keys['ArrowLeft'] = false;
                     
-                    // Run if pushed to the extreme (85% of max radius)
-                    if (dx > maxDist * 0.85) {
+                    // Run if pushed to the extreme (85% of max radius = ~51px)
+                    if (localDx > 51) {
                         this.p1.run();
                     } else {
                         this.p1.moveForward();
@@ -241,9 +246,9 @@ class Game {
             }
 
             // Vertical (Jump & Crouch)
-            if (dy < -35) { // Jump (Up)
+            if (localDy < -35) { // Jump (Up)
                 this.p1.jump();
-            } else if (dy > 35) { // Crouch (Down)
+            } else if (localDy > 35) { // Crouch (Down)
                 this.p1.crouch();
                 this.keys['ArrowDown'] = true;
             } else {
@@ -264,6 +269,9 @@ class Game {
         });
 
         window.addEventListener('touchmove', (e) => {
+            if (this.state === 'fighting') {
+                e.preventDefault(); // Prevent scrolling entirely while fighting
+            }
             if (activeTouchId !== null) {
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     if (e.changedTouches[i].identifier === activeTouchId) {
