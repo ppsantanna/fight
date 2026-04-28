@@ -156,7 +156,7 @@ class Fighter {
         const scale = this.config.fighterScale || 1.0;
         const insetX = 15 * scale;
         const insetY = 10 * scale;
-        
+
         let currentHeight = this.height;
         if (this.state === STATES.CROUCH) {
             currentHeight = this.height * 0.5; // Reduced to 50% for better clearance
@@ -304,7 +304,7 @@ class Fighter {
         this.state = STATES.SPECIAL;
         this.stateTimer = 30;
         this.vx = 0;
-        
+
         // Spawn the projectile after a short startup
         setTimeout(() => {
             // Even if hit, the magic is "released" now
@@ -319,7 +319,7 @@ class Fighter {
                 playerNum: this.playerNum
             };
             this.projectiles.push(proj);
-            
+
             if (this.playerNum === 1) {
                 audio.playExternalSFX('magic');
             } else {
@@ -418,8 +418,8 @@ class Fighter {
             const h1 = this.hitbox;
             const h2 = this.opponent.hitbox;
             const overlapping = (h1.x < h2.x + h2.width && h1.x + h1.width > h2.x &&
-                               h1.y < h2.y + h2.height && h1.y + h1.height > h2.y);
-            
+                h1.y < h2.y + h2.height && h1.y + h1.height > h2.y);
+
             if (dist < 110 || overlapping) {
                 this.state = STATES.IDLE;
                 this.vx = 0;
@@ -520,7 +520,7 @@ class Fighter {
                 break;
             case STATES.CROUCH:
                 // Adjust Y for crouching if needed, but no scale
-                this.drawOffsetY = 0; 
+                this.drawOffsetY = 0;
                 break;
             case STATES.PUNCH:
                 this.drawOffsetX = this.facingRight ? 5 : -5;
@@ -592,7 +592,7 @@ class Fighter {
         // Try to draw sprite image: specific state -> idle fallback -> any available fallback
         const spriteKey = this._getCurrentSpriteKey();
         let sprite = this.sprites[spriteKey] || this.sprites['idle'];
-        
+
         // Fallback robusto caso idle também falte
         if (!sprite) {
             sprite = this.sprites['walk'] || this.sprites['punch'] || Object.values(this.sprites)[0];
@@ -611,7 +611,8 @@ class Fighter {
         ctx.save();
         ctx.fillStyle = 'rgba(0,0,0,0.3)';
         ctx.beginPath();
-        ctx.ellipse(this.x + this.width / 2, this.feetY + 2, this.width / 2.5, 6, 0, 0, Math.PI * 2);
+        const shadowScale = Math.max(0.3, 1 - (Math.max(0, this.y) / 150));
+        ctx.ellipse(this.x + this.width / 2, this.groundY + 2, (this.width / 2.5) * shadowScale, 6 * shadowScale, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
 
@@ -630,17 +631,17 @@ class Fighter {
 
     _drawProjectile(ctx, p, projImage) {
         ctx.save();
-        
+
         // Flip image if moving left
         const movingRight = p.vx > 0;
         const cx = p.x + p.width / 2;
         const cy = p.y + p.height / 2;
-        
+
         // Add a subtle glow behind the image
         const glowColor = this.playerNum === 1 ? 'rgba(0, 150, 255, 0.4)' : 'rgba(255, 50, 50, 0.4)';
         ctx.shadowBlur = 20;
         ctx.shadowColor = glowColor;
-        
+
         ctx.translate(cx, cy);
         if (!movingRight) ctx.scale(-1, 1);
         ctx.translate(-cx, -cy);
@@ -665,7 +666,7 @@ class Fighter {
                 ctx.drawImage(projImage, trailX, trailY, p.width, p.height);
             }
         }
-        
+
         ctx.restore();
     }
 

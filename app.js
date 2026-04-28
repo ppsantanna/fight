@@ -7,6 +7,7 @@
 
     // ---- DOM Elements ----
     const titleScreen = document.getElementById('title-screen');
+    const versusScreen = document.getElementById('versus-screen');
     const gameScreen = document.getElementById('game-screen');
     const victoryScreen = document.getElementById('victory-screen');
     const btnStart = document.getElementById('btn-start');
@@ -18,6 +19,8 @@
     const canvas = document.getElementById('game-canvas');
     const overlay = document.getElementById('overlay');
     const overlayText = document.getElementById('overlay-text');
+    const vsImgP1 = document.getElementById('vs-img-p1');
+    const vsImgP2 = document.getElementById('vs-img-p2');
     const timerEl = document.getElementById('timer');
     const roundLabel = document.getElementById('round-label');
     const victoryText = document.getElementById('victory-text');
@@ -25,7 +28,7 @@
     const comboP2 = document.getElementById('combo-p2');
     const hitEffects = document.getElementById('hit-effects');
     const settingsScreen = document.getElementById('settings-screen');
-    
+
     // Settings inputs
     const setFighterScale = document.getElementById('set-fighter-scale');
     const setMagicScale = document.getElementById('set-magic-scale');
@@ -56,7 +59,7 @@
     function setRandomBackground() {
         const urlParams = new URLSearchParams(window.location.search);
         const forcedBg = urlParams.get('f');
-        
+
         const bgNum = forcedBg || (Math.floor(Math.random() * TOTAL_BACKGROUNDS) + 1);
         const bgEl = document.getElementById('game-bg');
         if (bgEl) {
@@ -66,7 +69,7 @@
 
     // ---- Screen Management ----
     function showScreen(screen) {
-        [titleScreen, gameScreen, victoryScreen, settingsScreen].forEach(s => {
+        [titleScreen, versusScreen, gameScreen, victoryScreen, settingsScreen].forEach(s => {
             if (s) s.classList.remove('active');
         });
         if (screen) screen.classList.add('active');
@@ -101,7 +104,7 @@
         setStartY.value = currentConfig.startY;
         setCpuSpeed.value = currentConfig.cpuSpeed;
         setCpuAttack.value = currentConfig.cpuAttack;
-        
+
         valFighterScale.textContent = currentConfig.fighterScale.toFixed(1);
         valMagicScale.textContent = currentConfig.magicScale.toFixed(1);
         valStartY.textContent = currentConfig.startY;
@@ -115,7 +118,7 @@
         currentConfig.startY = parseInt(setStartY.value);
         currentConfig.cpuSpeed = parseFloat(setCpuSpeed.value);
         currentConfig.cpuAttack = parseFloat(setCpuAttack.value);
-        
+
         localStorage.setItem('battle_arena_settings', JSON.stringify(currentConfig));
     }
 
@@ -129,18 +132,18 @@
 
     // ---- Scaling & Fullscreen Management ----
     const gameContainer = document.getElementById('game-container');
-    
+
     function handleResize() {
         const baseWidth = 1024;
         const baseHeight = 600;
         const windowWidth = window.innerWidth;
         const windowHeight = window.innerHeight;
-        
+
         // Calculate scale to fit the screen
         const scaleX = windowWidth / baseWidth;
         const scaleY = windowHeight / baseHeight;
         const scale = Math.min(scaleX, scaleY);
-        
+
         if (gameContainer) {
             gameContainer.style.transform = `translate(-50%, -50%) scale(${scale})`;
         }
@@ -152,7 +155,7 @@
     function requestFullscreenAndLandscape() {
         const docEl = document.documentElement;
         const requestFullscreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
-        
+
         if (requestFullscreen) {
             requestFullscreen.call(docEl).then(() => {
                 if (screen.orientation && screen.orientation.lock) {
@@ -162,16 +165,41 @@
         }
     }
 
+    // ---- Versus Screen ----
+    function showVersusScreen() {
+        requestFullscreenAndLandscape();
+        handleResize();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const p1Param = urlParams.get('p1') || '1';
+        const p2Param = urlParams.get('p2') || 'fighter';
+
+        if (vsImgP1) {
+            vsImgP1.src = `assets/images/${p1Param}_a_player.png`;
+        }
+        if (vsImgP2) {
+            vsImgP2.src = `assets/images/${p2Param}_a_player.png`;
+        }
+
+        audio.init();
+
+        showScreen(versusScreen);
+
+        setTimeout(() => {
+            startGame();
+        }, 5000);
+    }
+
     // ---- Start Game ----
     function startGame() {
         requestFullscreenAndLandscape();
         handleResize(); // recalculate after entering fullscreen
-        
+
         audio.init();
         audio.loadSFX('magic', 'assets/sounds/fighter_a_magic_s.mp3');
         setRandomBackground();
         showScreen(gameScreen);
-        
+
         // Pass current configuration to Game
         game = new Game(canvas, currentConfig);
 
@@ -329,7 +357,7 @@
 
     // ---- Event Listeners ----
     btnStart.addEventListener('click', () => {
-        startGame();
+        showVersusScreen();
     });
 
     btnSettings.addEventListener('click', () => {

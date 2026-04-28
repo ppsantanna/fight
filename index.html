@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#ff2d55">
@@ -10,9 +12,11 @@
     <title>Battle Arena - Fighting Game</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="assets/images/fighter_a.png">
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@700;900&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div id="game-container">
         <!-- Title Screen -->
@@ -35,6 +39,22 @@
                         <span class="hint-label">ATAQUES</span>
                         <span>F: Soco | G: Chute | H: Defesa | R: Magia</span>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Versus Screen -->
+        <div id="versus-screen" class="screen">
+            <div class="versus-bg"></div>
+            <div class="versus-content">
+                <div class="vs-player left">
+                    <img id="vs-img-p1" src="assets/images/1_a_player.png" alt="Player 1">
+                </div>
+                <div class="vs-center">
+                    <h1 class="vs-text">VS</h1>
+                </div>
+                <div class="vs-player right">
+                    <img id="vs-img-p2" src="assets/images/fighter_a_player.png" alt="Player 2">
                 </div>
             </div>
         </div>
@@ -139,20 +159,20 @@
         <div id="settings-screen" class="screen">
             <div class="settings-content">
                 <h2 class="settings-title">CONFIGURAÇÕES</h2>
-                
+
                 <div class="settings-grid">
                     <div class="setting-item">
                         <label>TAMANHO JOGADOR (Fator)</label>
                         <input type="range" id="set-fighter-scale" min="0.5" max="2.0" step="0.1" value="1.0">
                         <span id="val-fighter-scale">1.0</span>
                     </div>
-                    
+
                     <div class="setting-item">
                         <label>TAMANHO MAGIA (Fator)</label>
                         <input type="range" id="set-magic-scale" min="0.5" max="2.5" step="0.1" value="1.0">
                         <span id="val-magic-scale">1.0</span>
                     </div>
-                    
+
                     <div class="setting-item">
                         <label>POSIÇÃO INICIAL (Y)</label>
                         <input type="range" id="set-start-y" min="100" max="800" step="10" value="540">
@@ -186,4 +206,5 @@
     <script src="game.js"></script>
     <script src="app.js"></script>
 </body>
-</html> 
+
+</html>

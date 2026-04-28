@@ -22,9 +22,9 @@ class Game {
         this.projectileImage = new Image();
         this.projectileImage.src = 'assets/images/projectile.png';
 
-        // Handle player selection via URL parameters (?p=X and ?p2=X)
+        // Handle player selection via URL parameters (?p1=X and ?p2=X)
         const urlParams = new URLSearchParams(window.location.search);
-        const p1Choice = urlParams.get('p') || 'fighter';
+        const p1Choice = urlParams.get('p1') || '1';
         const p2Choice = urlParams.get('p2') || 'fighter';
 
         const getFighterSprites = (prefixNum) => {
@@ -114,7 +114,7 @@ class Game {
                 }
                 this.lastRightTap = now;
             }
-            
+
             this.keys[e.code] = true;
             e.preventDefault();
         });
@@ -167,7 +167,7 @@ class Game {
             btn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 if (this.state !== 'fighting') return;
-                
+
                 if (code === 'KeyF') {
                     this.p1.punch();
                 } else if (code === 'KeyG') {
@@ -198,7 +198,7 @@ class Game {
 
         const handleJoystick = (touch) => {
             if (this.state !== 'fighting') return;
-            
+
             const rect = base.getBoundingClientRect();
             const centerX = rect.left + rect.width / 2;
             const centerY = rect.top + rect.height / 2;
@@ -225,7 +225,7 @@ class Game {
                 if (localDx > 0) {
                     this.keys['ArrowRight'] = true;
                     this.keys['ArrowLeft'] = false;
-                    
+
                     // Run if pushed to the extreme (85% of max radius = ~51px)
                     if (localDx > 51) {
                         this.p1.run();
