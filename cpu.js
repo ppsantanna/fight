@@ -274,7 +274,7 @@ class CPUController {
             cpu.moveBackward();
             setTimeout(() => cpu.stopMoving(), 200);
         }
-    }
+    } 
 
     _defensiveAction(cpu, player, dist) {
         const rand = Math.random();

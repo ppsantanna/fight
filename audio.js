@@ -236,7 +236,7 @@ class AudioManager {
     playFight() {
         if (!this.initialized) return;
         this._playVoice([600, 800, 1000, 700], 0.08, 0.5);
-    }
+    } 
 
     playKO() {
         if (!this.initialized) return;

@@ -3,7 +3,7 @@
    With per-state sprite images and chroma key
    ============================================ */
 
-const STATES = {
+const STATES = { 
     IDLE: 'idle',
     WALK_FORWARD: 'walkForward',
     WALK_BACKWARD: 'walkBackward',

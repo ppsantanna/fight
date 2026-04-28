@@ -668,7 +668,7 @@ class Game {
     _drawStage(ctx) {
         // Background is now handled by CSS (#game-bg) to support animated GIFs
         // We only clear the canvas and optionally draw effects here
-    }
+    } 
 
     _drawParticles(ctx) {
         for (const p of this.particles) {

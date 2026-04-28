@@ -953,7 +953,7 @@ body {
     50% {
         filter: brightness(2) saturate(2) hue-rotate(-30deg);
     }
-}
+} 
 
 /* ============================================
    SETTINGS SCREEN
