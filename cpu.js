@@ -7,19 +7,19 @@ class CPUController {
         this.difficulty = difficulty;
         this.config = config;
         this.actionTimer = 0;
-        
+
         // Aplica o fator de velocidade: valores menores aumentam o intervalo (CPU mais lenta)
         const speedFactor = config.speed || 1.0;
         this.thinkInterval = Math.round(this._getThinkInterval() / speedFactor);
-        
+
         this.comboStep = 0;
         this.comboTimer = 0;
         this.retreatTimer = 0;
-        
+
         // Aplica o fator de ataque: valores menores diminuem a agressividade
         const attackFactor = config.attack || 1.0;
         this.aggressiveness = this._getAggressiveness() * attackFactor;
-        
+
         this.reactionTime = this._getReactionTime();
         this.blockChance = this._getBlockChance();
         this.specialUseThreshold = this._getSpecialThreshold();
@@ -159,6 +159,16 @@ class CPUController {
     _farRangeAction(cpu, player, dist) {
         const rand = Math.random();
 
+        // 10% de chance de ativar o atropelamento se não foi usado
+        if (!cpu.usedTractorMatch && rand < 0.1) {
+            cpu.addInput('down');
+            setTimeout(() => {
+                cpu.addInput('forward');
+                setTimeout(() => cpu.magic(), 80);
+            }, 80);
+            return;
+        }
+
         // Use fireball if have meter
         if (cpu.specialMeter >= this.specialUseThreshold && rand < 0.35) {
             cpu.magic();
@@ -186,6 +196,16 @@ class CPUController {
 
     _midRangeAction(cpu, player, dist) {
         const rand = Math.random();
+
+        // chance de ativar o trator de média distância
+        if (!cpu.usedTractorMatch && rand < 0.05) {
+            cpu.addInput('down');
+            setTimeout(() => {
+                cpu.addInput('forward');
+                setTimeout(() => cpu.magic(), 80);
+            }, 80);
+            return;
+        }
 
         if (rand < this.aggressiveness * 0.5) {
             // Dash/Run forward to attack range
@@ -274,7 +294,7 @@ class CPUController {
             cpu.moveBackward();
             setTimeout(() => cpu.stopMoving(), 200);
         }
-    } 
+    }
 
     _defensiveAction(cpu, player, dist) {
         const rand = Math.random();

@@ -50,8 +50,8 @@ class Game {
         const p1Sprites = getFighterSprites(p1Choice);
         const p2Sprites = getFighterSprites(p2Choice);
 
-        this.p1 = new Fighter(1, 150, true, p1Sprites, config);
-        this.p2 = new Fighter(2, this.width - 250, false, p2Sprites, config);
+        this.p1 = new Fighter(1, 150, true, p1Sprites, { ...config, playerPrefix: p1Choice });
+        this.p2 = new Fighter(2, this.width - 250, false, p2Sprites, { ...config, playerPrefix: p2Choice });
         this.p1.groundY = this.groundY;
         this.p2.groundY = this.groundY;
         this.p1.opponent = this.p2;
@@ -529,31 +529,36 @@ class Game {
             }
         }
 
-        // P1 projectiles -> P2
-        this.p1.projectiles.forEach((pr, index) => {
-            if (pr.active) {
-                if (this._rectsOverlap(pr, this.p2.hitbox)) {
-                    const result = this.p2.takeDamage(pr.damage, 7, 'special');
-                    this._onHitEffect(this.p2, result, { ...pr, type: 'special' });
+        // Projectiles
+        const handleProjectile = (pr, owner, target) => {
+            if (!pr.active) return;
+            if (this._rectsOverlap(pr, target.hitbox)) {
+                if (pr.isTractor) {
+                    if (!pr.hasHit) {
+                        if (target.isBlocking || target.state === STATES.BLOCK) {
+                            pr.hasHit = true;
+                            if (this.onBlock) this.onBlock(pr.x + pr.width / 2, pr.y + pr.height / 2);
+                        } else {
+                            pr.hasHit = true;
+                            target.health = 0;
+                            target.state = STATES.DEFEATED;
+                            target.canAct = false;
+                            if (this.onHit) this.onHit(pr.x + pr.width / 2, pr.y + pr.height / 2, 100);
+                            if (this.onShake) this.onShake('heavy');
+                        }
+                    }
+                } else {
+                    const result = target.takeDamage(pr.damage, 7, 'special');
+                    this._onHitEffect(target, result, { ...pr, type: 'special' });
                     pr.active = false;
-                    this.p1.specialMeter = Math.min(this.p1.maxSpecial, this.p1.specialMeter + 6);
+                    owner.specialMeter = Math.min(owner.maxSpecial, owner.specialMeter + 6);
                     audio.playProjectileHit();
                 }
             }
-        });
+        };
 
-        // P2 projectiles -> P1
-        this.p2.projectiles.forEach((pr, index) => {
-            if (pr.active) {
-                if (this._rectsOverlap(pr, this.p1.hitbox)) {
-                    const result = this.p1.takeDamage(pr.damage, 7, 'special');
-                    this._onHitEffect(this.p1, result, { ...pr, type: 'special' });
-                    pr.active = false;
-                    this.p2.specialMeter = Math.min(this.p2.maxSpecial, this.p2.specialMeter + 6);
-                    audio.playProjectileHit();
-                }
-            }
-        });
+        this.p1.projectiles.forEach(pr => handleProjectile(pr, this.p1, this.p2));
+        this.p2.projectiles.forEach(pr => handleProjectile(pr, this.p2, this.p1));
 
         // Projectile vs projectile
         this.p1.projectiles.forEach(pr1 => {
@@ -668,7 +673,7 @@ class Game {
     _drawStage(ctx) {
         // Background is now handled by CSS (#game-bg) to support animated GIFs
         // We only clear the canvas and optionally draw effects here
-    } 
+    }
 
     _drawParticles(ctx) {
         for (const p of this.particles) {

@@ -3,7 +3,7 @@
    With per-state sprite images and chroma key
    ============================================ */
 
-const STATES = { 
+const STATES = {
     IDLE: 'idle',
     WALK_FORWARD: 'walkForward',
     WALK_BACKWARD: 'walkBackward',
@@ -40,6 +40,7 @@ class Fighter {
         this.y = 0;
         this.facingRight = facingRight;
         this.config = config;
+        this.usedTractorMatch = false; // "essa ação só possa ser executada uma vez por luta"
 
         // Dimensions scaled by config
         const scale = config.fighterScale || 1.0;
@@ -193,6 +194,10 @@ class Fighter {
             this.inputBuffer = [];
             return 'dash_punch';
         }
+        if (str.includes('down,forward,magic') || str.includes('forward,down,magic')) {
+            this.inputBuffer = [];
+            return 'tractor';
+        }
         return null;
     }
 
@@ -274,6 +279,11 @@ class Fighter {
         // Direct magic command - easier than combo
         if (!this.canAct || this.hitStun > 0) return;
         if ([STATES.PUNCH, STATES.KICK, STATES.SPECIAL, STATES.RUN].includes(this.state)) return;
+
+        this.addInput('magic');
+        const combo = this.checkCombo();
+        if (combo === 'tractor') { this.doTractor(); return; }
+
         // Cost removed to make it always accessible as requested
         this.doFireball();
     }
@@ -326,6 +336,58 @@ class Fighter {
                 audio.playSpecial();
             }
         }, 200);
+    }
+
+    doTractor() {
+        if (this.usedTractorMatch) return;
+        this.usedTractorMatch = true;
+
+        this.state = STATES.SPECIAL;
+        this.stateTimer = 50;
+        this.hasHitThisAttack = false;
+        this.vx = 0;
+        this.vy = 0;
+
+        const prefix = this.config.playerPrefix || '1';
+        const gameScreen = document.getElementById('game-screen');
+        const gameCanvas = document.getElementById('game-canvas');
+        if (!gameScreen || !gameCanvas) return;
+
+        const img = document.createElement('img');
+        img.src = `assets/images/${prefix}_a_trator.gif`;
+        img.className = 'tractor-effect';
+        img.style.position = 'absolute';
+        img.style.zIndex = '3'; // To guarantee layer above background
+        img.style.pointerEvents = 'none';
+
+        const isRight = this.facingRight;
+        if (isRight) {
+            img.style.transform = 'scaleX(-1)';
+        }
+
+        // Insert behind canvas
+        gameScreen.insertBefore(img, gameCanvas);
+
+        const mScale = this.config.fighterScale || 1.0;
+        const rect = gameCanvas.getBoundingClientRect();
+        const scaleX = rect.width / gameCanvas.width;
+        const scaleY = rect.height / gameCanvas.height;
+
+        const tractor = {
+            element: img,
+            isRight: isRight,
+            x: isRight ? -400 : 1024 + 100,
+            y: this.groundY - 180 * mScale,
+            width: 300 * mScale,
+            height: 180 * mScale,
+            vx: isRight ? 18 : -18,
+            damage: 100,
+            active: true,
+            isTractor: true
+        };
+
+        this.projectiles.push(tractor);
+        audio.playSpecial();
     }
 
     doDragonKick() {
@@ -469,12 +531,26 @@ class Fighter {
             const p = this.projectiles[i];
             if (p.active) {
                 p.x += p.vx;
-                p.animFrame++;
-                // Remove if far off screen
-                if (p.x < -150 || p.x > stageWidth + 150) {
+                if (!p.isTractor) p.animFrame++;
+
+                if (p.isTractor) {
+                    if (p.element) {
+                        // Como o #game-container já possui 1024x600 e faz o 'scale' nativamente no CSS via transform,
+                        // podemos usar as coordenadas reais diretamente.
+                        p.element.style.left = p.x + 'px';
+                        p.element.style.top = p.y + 'px';
+                        p.element.style.width = p.width + 'px';
+                        p.element.style.height = p.height + 'px';
+                    }
+                }
+
+                // Remove se estiver fora da tela largamente
+                if (p.x < -1000 || p.x > stageWidth + 1000) {
+                    if (p.isTractor && p.element) p.element.remove();
                     this.projectiles.splice(i, 1);
                 }
             } else {
+                if (p.isTractor && p.element) p.element.remove();
                 this.projectiles.splice(i, 1);
             }
         }
@@ -619,7 +695,7 @@ class Fighter {
         // Projectiles
         const projImg = this.sprites['projectile'] || defaultProjImage;
         this.projectiles.forEach(p => {
-            if (p.active) this._drawProjectile(ctx, p, projImg);
+            if (p.active && !p.isTractor) this._drawProjectile(ctx, p, projImg);
         });
         // Block shield
         if (this.isBlocking) this._drawBlockShield(ctx);
