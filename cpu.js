@@ -23,7 +23,7 @@ class CPUController {
         this.reactionTime = this._getReactionTime();
         this.blockChance = this._getBlockChance();
         this.specialUseThreshold = this._getSpecialThreshold();
-    }
+    } 
 
     _getThinkInterval() {
         switch (this.difficulty) {

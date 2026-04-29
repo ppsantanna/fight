@@ -952,7 +952,7 @@ body {
 
     50% {
         filter: brightness(2) saturate(2) hue-rotate(-30deg);
-    }
+    } 
 } 
 
 /* ============================================
@@ -1153,5 +1153,6 @@ body {
         height: 55px;
         font-size: 16px;
     }
-}. t r a c t o r - e f f e c t   {   p o s i t i o n :   a b s o l u t e ;   z - i n d e x :   1 ;   p o i n t e r - e v e n t s :   n o n e ;   }  
+}. t r a c t o r - e f f e c t   {   p o s i t i o n :   a b s o l u t e ;   z - i n d e x :   1 ;   p o i n t e r - e v e n t s :   n o n e ;   } 
+ 
  

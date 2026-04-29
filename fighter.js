@@ -384,7 +384,7 @@ class Fighter {
             damage: 100,
             active: true,
             isTractor: true
-        };
+        }; 
 
         this.projectiles.push(tractor);
         audio.playSpecial();
@@ -703,7 +703,7 @@ class Fighter {
 
     _drawFallback(ctx, x, y) {
         // Método procedural removido para forçar o uso de imagens de sprites.
-    }
+    } 
 
     _drawProjectile(ctx, p, projImage) {
         ctx.save();

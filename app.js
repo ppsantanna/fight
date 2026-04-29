@@ -167,7 +167,7 @@
 
     // ---- Versus Screen ----
     function showVersusScreen() {
-        requestFullscreenAndLandscape(); 
+        requestFullscreenAndLandscape();  
         handleResize();
 
         const urlParams = new URLSearchParams(window.location.search);
