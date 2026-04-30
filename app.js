@@ -170,7 +170,7 @@
     }
 
     // ---- Versus Screen ----
-    function showVersusScreen() {
+    function showVersusScreen() { 
         requestFullscreenAndLandscape();
         handleResize();
 

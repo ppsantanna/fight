@@ -25,7 +25,7 @@ class CPUController {
         this.specialUseThreshold = this._getSpecialThreshold();
     }
 
-    _getThinkInterval() {
+    _getThinkInterval() { 
         switch (this.difficulty) {
             case 'easy': return 25;
             case 'normal': return 15;

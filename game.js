@@ -123,7 +123,7 @@ class Game {
                 const j1 = String(item.J1).trim().toLowerCase();
                 const j2 = String(item.J2).trim().toLowerCase();
                 return (j1 === sP1 && j2 === sP2) || (j1 === sP2 && j2 === sP1);
-            });
+            }); 
 
             if (match) {
                 const isDirect = String(match.J1).trim().toLowerCase() === sP1;

@@ -182,7 +182,7 @@ class Fighter {
 
     get feetY() { return this.groundY - this.y; }
     get centerX() { return this.x + this.width / 2; }
-    get hitbox() {
+    get hitbox() { 
         const scale = this.config.fighterScale || 1.0;
         const insetX = 15 * scale;
         const insetY = 10 * scale;

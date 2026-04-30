@@ -61,7 +61,7 @@ class AudioManager {
     playPunch() {
         if (!this.initialized) return;
         const t = this.ctx.currentTime;
-        
+
         // Noise burst for impact
         const bufferSize = this.ctx.sampleRate * 0.08;
         const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
@@ -236,7 +236,7 @@ class AudioManager {
     playFight() {
         if (!this.initialized) return;
         this._playVoice([600, 800, 1000, 700], 0.08, 0.5);
-    } 
+    }
 
     playKO() {
         if (!this.initialized) return;
@@ -326,7 +326,7 @@ class AudioManager {
         const bpm = 140;
         const beatDur = 60 / bpm;
         const barDur = beatDur * 4;
-        
+
         // Bass pattern
         const bassNotes = [110, 110, 146.83, 130.81, 110, 110, 146.83, 164.81];
         // Melody pattern  
@@ -336,7 +336,7 @@ class AudioManager {
 
         const scheduleLoop = () => {
             if (!this.ctx || this.ctx.state === 'closed') return;
-            
+
             const startTime = this.ctx.currentTime;
 
             // Bass line
