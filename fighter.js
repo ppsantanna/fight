@@ -182,7 +182,7 @@ class Fighter {
 
     get feetY() { return this.groundY - this.y; }
     get centerX() { return this.x + this.width / 2; }
-    get hitbox() { 
+    get hitbox() {
         const scale = this.config.fighterScale || 1.0;
         const insetX = 15 * scale;
         const insetY = 10 * scale;
@@ -417,8 +417,8 @@ class Fighter {
             active: true,
             isTractor: true,
             phase: 'moving_to_player',
-            // Parada: entrada de 10% da largura visível em tela
-            targetX: isRight ? -(estWidth * 0.9) : (1024 - estWidth * 0.1),
+            // Parada: entrada de 25% da largura visível em tela (melhorado para o adversário ver)
+            targetX: isRight ? -(estWidth * 0.75) : (1024 - estWidth * 0.25),
             waitTimer: 120
         };
 
@@ -428,8 +428,8 @@ class Fighter {
             tractor.height = img.naturalHeight;
             // Corrige Y de colisão para que a base toque no groundY
             tractor.y = this.groundY - tractor.height;
-            // Recalcula targetX com largura real
-            tractor.targetX = isRight ? -(tractor.width * 0.9) : (1024 - tractor.width * 0.1);
+            // Parada: entrada de 25% da largura visível em tela (melhorado para o adversário ver)
+            targetX: isRight ? -(tractor.width * 0.75) : (1024 - tractor.width * 0.25);
             console.log(`[Tractor] Loaded: ${tractorFile}, w=${tractor.width}, h=${tractor.height}, y=${tractor.y}`);
         };
 
