@@ -390,57 +390,57 @@ class Fighter {
         img.style.zIndex = '3';
         img.style.pointerEvents = 'none';
 
+        // O #game-container é escalado como um todo via CSS transform.
+        // Os filhos usam coordenadas do espaço interno (0-1024 x, 0-600 y).
+        // NÃO usar getBoundingClientRect para converter — o container cuida da escala.
+
         const isRight = this.facingRight;
+        const STAGE_WIDTH = 1024;
+        const VISIBLE_FRACTION = 0.25; // 25% da imagem visível em tela antes dos 2 segundos
 
-        // Insert behind canvas
-        gameScreen.insertBefore(img, gameCanvas);
-
-        // Converte groundY do espaço do canvas para CSS pixels (corrige no celular)
-        const canvasEl = gameCanvas;
-        const cssScaleY = canvasEl.getBoundingClientRect().height / canvasEl.height;
-        const cssScaleX = canvasEl.getBoundingClientRect().width / canvasEl.width;
-
-        // Posicionamento visual: base da imagem alinhada ao chão
-        img.style.top = (this.groundY * cssScaleY) + 'px';
-        img.style.transformOrigin = 'bottom left';
-        img.style.transform = (isRight ? 'scaleX(-1) ' : '') + 'translateY(-100%)';
-
-        // Estimativas iniciais para colisão (serão ajustadas no onload)
-        const estWidth = 800;
-        const estHeight = 300;
-
-        // Visibilidade de 25% ao parar: o adversário consegue ver parte do trator
-        const VISIBLE_FRACTION = 0.25;
+        // Estimativas iniciais (serão substituídas no onload)
+        const EST_W = 800;
+        const EST_H = 300;
 
         const tractor = {
             element: img,
-            isRight: isRight,
-            // Start just off-screen (within the -1000 removal boundary to be safe)
-            x: isRight ? -(estWidth) : 1024,
-            y: this.groundY - estHeight,
-            width: estWidth,
-            height: estHeight,
+            isRight,
+            x: isRight ? -EST_W : STAGE_WIDTH,
+            y: this.groundY - EST_H, // topo; base = groundY
+            width: EST_W,
+            height: EST_H,
             vx: isRight ? 22 : -22,
             damage: 100,
             active: true,
             isTractor: true,
             phase: 'moving_to_player',
-            // Para com 25% visível em tela
-            targetX: isRight ? -(estWidth * (1 - VISIBLE_FRACTION)) : (1024 - estWidth * VISIBLE_FRACTION),
-            waitTimer: 120
+            // Para com 25% visível; recalculado no onload com dimensões reais
+            targetX: isRight ? -(EST_W * (1 - VISIBLE_FRACTION)) : (STAGE_WIDTH - EST_W * VISIBLE_FRACTION),
+            waitTimer: 120 // ~2 segundos a 60fps
         };
 
-        // Quando a imagem carregar, ajusta dimensões reais (evita colisão errada com estimativas)
         img.onload = () => {
-            tractor.width = img.naturalWidth;
-            tractor.height = img.naturalHeight;
-            tractor.y = this.groundY - tractor.height;
-            // Recalcula ponto de parada com largura real da imagem
+            const w = img.naturalWidth;
+            const h = img.naturalHeight;
+            tractor.width = w;
+            tractor.height = h;
+            // Base da imagem alinhada com a base do jogador (groundY)
+            tractor.y = this.groundY - h;
+            // Ponto de parada: 25% da largura visível a partir da borda da tela
             tractor.targetX = isRight
-                ? -(tractor.width * (1 - VISIBLE_FRACTION))
-                : (1024 - tractor.width * VISIBLE_FRACTION);
-            console.log(`[Tractor] Loaded: ${tractorFile} | w=${tractor.width} h=${tractor.height} targetX=${tractor.targetX}`);
+                ? -(w * (1 - VISIBLE_FRACTION))   // entra pela esquerda
+                : (STAGE_WIDTH - w * VISIBLE_FRACTION); // entra pela direita
+            console.log(`[Tractor] ${tractorFile} | w=${w} h=${h} y=${tractor.y} stop=${tractor.targetX}`);
         };
+
+        // CSS: top = groundY (espaço interno do container, não pixels de tela)
+        // translateY(-100%) sobe a imagem para que sua base fique em groundY
+        img.style.top = this.groundY + 'px';
+        img.style.transformOrigin = 'bottom left';
+        img.style.transform = (isRight ? 'scaleX(-1) ' : '') + 'translateY(-100%)';
+
+        // Insere atrás do canvas
+        gameScreen.insertBefore(img, gameCanvas);
 
         this.projectiles.push(tractor);
         audio.playSpecial();
@@ -604,11 +604,9 @@ class Fighter {
                     }
 
                     if (p.element) {
-                        // Converte coordenadas do canvas (0-1024) para CSS pixels reais
-                        // Isso corrige o posicionamento no celular onde o canvas é escalado
-                        const canvas = document.getElementById('game-canvas');
-                        const scaleX = canvas ? (canvas.getBoundingClientRect().width / canvas.width) : 1;
-                        p.element.style.left = (p.x * scaleX) + 'px';
+                        // CSS left usa coordenadas do espaço interno (0-1024).
+                        // O container é escalado como um todo via CSS transform no app.js.
+                        p.element.style.left = p.x + 'px';
                     }
                 } else {
                     p.x += p.vx;
