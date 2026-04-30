@@ -23,7 +23,7 @@ class CPUController {
         this.reactionTime = this._getReactionTime();
         this.blockChance = this._getBlockChance();
         this.specialUseThreshold = this._getSpecialThreshold();
-    } 
+    }
 
     _getThinkInterval() {
         switch (this.difficulty) {
@@ -159,8 +159,8 @@ class CPUController {
     _farRangeAction(cpu, player, dist) {
         const rand = Math.random();
 
-        // 10% de chance de ativar o atropelamento se não foi usado
-        if (!cpu.usedTractorMatch && rand < 0.1) {
+        // 10% de chance de ativar o atropelamento se não foi usado (ou se infinito estiver ativo)
+        if ((!cpu.usedTractorMatch || cpu.config.tractorInfinite) && rand < 0.1) {
             cpu.addInput('down');
             setTimeout(() => {
                 cpu.addInput('forward');
@@ -198,7 +198,7 @@ class CPUController {
         const rand = Math.random();
 
         // chance de ativar o trator de média distância
-        if (!cpu.usedTractorMatch && rand < 0.05) {
+        if ((!cpu.usedTractorMatch || cpu.config.tractorInfinite) && rand < 0.05) {
             cpu.addInput('down');
             setTimeout(() => {
                 cpu.addInput('forward');

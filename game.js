@@ -24,8 +24,8 @@ class Game {
 
         // Handle player selection via URL parameters (?p1=X and ?p2=X)
         const urlParams = new URLSearchParams(window.location.search);
-        const p1Choice = urlParams.get('p1') || '1';
-        const p2Choice = urlParams.get('p2') || 'fighter';
+        const p1Choice = urlParams.get('p1') || urlParams.get('P1') || '1';
+        const p2Choice = urlParams.get('p2') || urlParams.get('P2') || 'fighter';
 
         const getFighterSprites = (prefixNum) => {
             const prefix = `${prefixNum}_a`;
@@ -41,7 +41,7 @@ class Game {
                 victory: `assets/images/${prefix}_victory.png`,
                 death: `assets/images/${prefix}_death.png`,
                 hit: `assets/images/${prefix}_ouch.png`,
-                projectile: `assets/images/${prefixNum}_projectile.png`,
+                //projectile: `assets/images/${prefixNum}_projectile.png`,
                 run1: `assets/images/${prefix}_run_1.png`,
                 run2: `assets/images/${prefix}_run_2.png`
             };
@@ -99,6 +99,60 @@ class Game {
         this.onShake = null;
         this.onRoundWin = null;
         this.onMatchEnd = null;
+
+        // Load Tractor Config
+        this.loadTractorConfig();
+    }
+
+    async loadTractorConfig() {
+        const sP1 = String(this.p1.config.playerPrefix || '1').trim().toLowerCase();
+        const sP2 = String(this.p2.config.playerPrefix || 'fighter').trim().toLowerCase();
+
+        // Fallback padrão baseado no prefixo do jogador
+        const defaultT1 = `${sP1}_a_trator.gif`;
+        const defaultT2 = `${sP2}_a_trator.gif`;
+        const defaultM1 = 'projectile.png';
+        const defaultM2 = 'projectile.png';
+
+        try {
+            const response = await fetch(`assets/personal.json?v=${Date.now()}`);
+            const config = await response.json();
+
+            // Busca no JSON pela combinação p1/p2
+            const match = config.find(item => {
+                const j1 = String(item.J1).trim().toLowerCase();
+                const j2 = String(item.J2).trim().toLowerCase();
+                return (j1 === sP1 && j2 === sP2) || (j1 === sP2 && j2 === sP1);
+            });
+
+            if (match) {
+                const isDirect = String(match.J1).trim().toLowerCase() === sP1;
+                this.p1.tractorImage = isDirect ? match.T1 : match.T2;
+                this.p2.tractorImage = isDirect ? match.T2 : match.T1;
+                this.p1.magicImage = isDirect ? match.M1 : match.M2;
+                this.p2.magicImage = isDirect ? match.M2 : match.M1;
+                console.log(`[TractorConfig] JSON match: P1=${this.p1.tractorImage}, P2=${this.p2.tractorImage}`);
+            } else {
+                // Sem correspondência no JSON, usa fallback
+                this.p1.tractorImage = defaultT1;
+                this.p2.tractorImage = defaultT2;
+                this.p1.magicImage = defaultM1;
+                this.p2.magicImage = defaultM2;
+                console.log(`[TractorConfig] No JSON match, using defaults: P1=${defaultT1}, P2=${defaultT2}`);
+            }
+        } catch (error) {
+            // Erro ao carregar JSON, usa fallback
+            this.p1.tractorImage = defaultT1;
+            this.p2.tractorImage = defaultT2;
+            this.p1.magicImage = defaultM1;
+            this.p2.magicImage = defaultM2;
+            console.error('[TractorConfig] Error loading JSON, using defaults:', error);
+        }
+
+        // Preload de todas as imagens configuradas
+        [this.p1.tractorImage, this.p2.tractorImage, this.p1.magicImage, this.p2.magicImage]
+            .filter(Boolean)
+            .forEach(file => { const img = new Image(); img.src = `assets/images/${file}`; });
     }
 
     setupInput() {
@@ -157,7 +211,8 @@ class Game {
             'btn-touch-punch': 'KeyF',
             'btn-touch-kick': 'KeyG',
             'btn-touch-block': 'KeyH',
-            'btn-touch-magic': 'KeyR'
+            'btn-touch-magic': 'KeyR',
+            'btn-touch-tractor': 'KeyT'
         };
 
         Object.entries(buttons).forEach(([id, code]) => {
@@ -174,6 +229,8 @@ class Game {
                     this.p1.kick();
                 } else if (code === 'KeyR') {
                     this.p1.magic();
+                } else if (code === 'KeyT') {
+                    this.p1.doTractor();
                 } else if (code === 'KeyH') {
                     this.p1.block();
                     this.keys['KeyH'] = true;
@@ -405,6 +462,8 @@ class Game {
         this.round = 1;
         this.p1.wins = 0;
         this.p2.wins = 0;
+        this.p1.usedTractorMatch = false;
+        this.p2.usedTractorMatch = false;
         this.p1.reset(150);
         this.p2.reset(this.width - 250);
         this.state = 'idle';
@@ -499,6 +558,7 @@ class Game {
         if (this.keys['KeyG']) { this.p1.kick(); this.keys['KeyG'] = false; }
         if (this.keys['KeyH']) this.p1.block();
         if (this.keys['KeyR']) { this.p1.magic(); this.keys['KeyR'] = false; }
+        if (this.keys['KeyT']) { this.p1.doTractor(); this.keys['KeyT'] = false; }
 
         // Release crouch
         if (!this.keys['ArrowDown'] && this.p1.state === STATES.CROUCH) this.p1.stopMoving();
@@ -673,7 +733,7 @@ class Game {
     _drawStage(ctx) {
         // Background is now handled by CSS (#game-bg) to support animated GIFs
         // We only clear the canvas and optionally draw effects here
-    } 
+    }
 
     _drawParticles(ctx) {
         for (const p of this.particles) {

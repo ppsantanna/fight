@@ -1,0 +1,34 @@
+[
+  {
+    "J1": "2",
+    "J2": "fighter",
+    "T1": "2_a_trator.gif",
+    "T2": "9_a_trator.gif",
+    "M1": "projectile.png",
+    "M2": "projectile.png"
+  },
+  {
+    "J1": "2",
+    "J2": "9",
+    "T1": "9_a_trator.gif",
+    "T2": "9_a_trator.gif",
+    "M1": "projectile_basket.png",
+    "M2": "projectile.png"
+  },
+  {
+    "J1": "9",
+    "J2": "2",
+    "T1": "9_a_trator.gif",
+    "T2": "2_a_trator.gif",
+    "M1": "projectile_basket.png",
+    "M2": "projectile.png"
+  },
+  {
+    "J1": "fighter",
+    "J2": "1",
+    "T1": "9_a_trator.gif",
+    "T2": "9_a_trator.gif",
+    "M1": "projectile.png",
+    "M2": "projectile.png"
+  }
+]

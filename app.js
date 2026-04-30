@@ -35,6 +35,7 @@
     const setStartY = document.getElementById('set-start-y');
     const setCpuSpeed = document.getElementById('set-cpu-speed');
     const setCpuAttack = document.getElementById('set-cpu-attack');
+    const setTractorInfinite = document.getElementById('set-tractor-infinite');
     const valFighterScale = document.getElementById('val-fighter-scale');
     const valMagicScale = document.getElementById('val-magic-scale');
     const valStartY = document.getElementById('val-start-y');
@@ -81,7 +82,8 @@
         magicScale: 1.0,
         startY: 540,
         cpuSpeed: 1.0,
-        cpuAttack: 1.0
+        cpuAttack: 1.0,
+        tractorInfinite: false
     };
 
     let currentConfig = { ...DEFAULT_SETTINGS };
@@ -104,6 +106,7 @@
         setStartY.value = currentConfig.startY;
         setCpuSpeed.value = currentConfig.cpuSpeed;
         setCpuAttack.value = currentConfig.cpuAttack;
+        if (setTractorInfinite) setTractorInfinite.value = currentConfig.tractorInfinite ? "true" : "false";
 
         valFighterScale.textContent = currentConfig.fighterScale.toFixed(1);
         valMagicScale.textContent = currentConfig.magicScale.toFixed(1);
@@ -118,6 +121,7 @@
         currentConfig.startY = parseInt(setStartY.value);
         currentConfig.cpuSpeed = parseFloat(setCpuSpeed.value);
         currentConfig.cpuAttack = parseFloat(setCpuAttack.value);
+        if (setTractorInfinite) currentConfig.tractorInfinite = setTractorInfinite.value === "true";
 
         localStorage.setItem('battle_arena_settings', JSON.stringify(currentConfig));
     }
@@ -167,7 +171,7 @@
 
     // ---- Versus Screen ----
     function showVersusScreen() {
-        requestFullscreenAndLandscape();  
+        requestFullscreenAndLandscape();
         handleResize();
 
         const urlParams = new URLSearchParams(window.location.search);

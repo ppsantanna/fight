@@ -107,6 +107,29 @@ class Fighter {
 
         // Round stats
         this.wins = 0;
+        this._tractorImage = null;
+        this._magicImage = null;
+    }
+
+    set tractorImage(val) {
+        this._tractorImage = val;
+    }
+
+    get tractorImage() {
+        return this._tractorImage;
+    }
+
+    set magicImage(val) {
+        this._magicImage = val;
+        if (val) {
+            loadSpriteImage(`assets/images/${val}`, (img) => {
+                if (img) this.sprites['projectile'] = img;
+            });
+        }
+    }
+
+    get magicImage() {
+        return this._magicImage;
     }
 
     _loadSprites(config) {
@@ -119,6 +142,12 @@ class Fighter {
         states.forEach(state => {
             if (config[state]) {
                 loadSpriteImage(config[state], (canvas) => {
+                    // Do not overwrite if a custom magic image from JSON was already applied
+                    if (state === 'projectile' && this._magicImage) {
+                        loaded++;
+                        if (loaded >= total) this.spritesLoaded = true;
+                        return;
+                    }
                     if (canvas) this.sprites[state] = canvas;
                     loaded++;
                     if (loaded >= total) this.spritesLoaded = true;
@@ -339,7 +368,7 @@ class Fighter {
     }
 
     doTractor() {
-        if (this.usedTractorMatch) return;
+        if (!this.config.tractorInfinite && this.usedTractorMatch) return;
         this.usedTractorMatch = true;
 
         this.state = STATES.SPECIAL;
@@ -354,37 +383,55 @@ class Fighter {
         if (!gameScreen || !gameCanvas) return;
 
         const img = document.createElement('img');
-        img.src = `assets/images/${prefix}_a_trator.gif`;
+        const tractorFile = this.tractorImage || `${prefix}_a_trator.gif`;
+        img.src = `assets/images/${tractorFile}`;
         img.className = 'tractor-effect';
         img.style.position = 'absolute';
-        img.style.zIndex = '3'; // To guarantee layer above background
+        img.style.zIndex = '3';
         img.style.pointerEvents = 'none';
 
         const isRight = this.facingRight;
-        if (isRight) {
-            img.style.transform = 'scaleX(-1)';
-        }
 
         // Insert behind canvas
         gameScreen.insertBefore(img, gameCanvas);
 
-        const mScale = this.config.fighterScale || 1.0;
-        const rect = gameCanvas.getBoundingClientRect();
-        const scaleX = rect.width / gameCanvas.width;
-        const scaleY = rect.height / gameCanvas.height;
+        // Posicionamento visual: base da imagem alinhada ao chão
+        img.style.top = this.groundY + 'px';
+        img.style.transformOrigin = 'bottom left';
+        img.style.transform = (isRight ? 'scaleX(-1) ' : '') + 'translateY(-100%)';
+
+        // Estimativas iniciais para colisão (serão ajustadas no onload)
+        const estWidth = 800;
+        const estHeight = 300;
 
         const tractor = {
             element: img,
             isRight: isRight,
-            x: isRight ? -400 : 1024 + 100,
-            y: this.groundY - 180 * mScale,
-            width: 300 * mScale,
-            height: 180 * mScale,
-            vx: isRight ? 18 : -18,
+            x: isRight ? -(estWidth) : 1024,
+            // Y para colisão: topo da imagem = groundY - altura da imagem
+            y: this.groundY - estHeight,
+            width: estWidth,
+            height: estHeight,
+            vx: isRight ? 22 : -22,
             damage: 100,
             active: true,
-            isTractor: true
-        }; 
+            isTractor: true,
+            phase: 'moving_to_player',
+            // Parada: entrada de 10% da largura visível em tela
+            targetX: isRight ? -(estWidth * 0.9) : (1024 - estWidth * 0.1),
+            waitTimer: 120
+        };
+
+        // Quando a imagem carregar, ajusta as dimensões reais para colisão precisa
+        img.onload = () => {
+            tractor.width = img.naturalWidth;
+            tractor.height = img.naturalHeight;
+            // Corrige Y de colisão para que a base toque no groundY
+            tractor.y = this.groundY - tractor.height;
+            // Recalcula targetX com largura real
+            tractor.targetX = isRight ? -(tractor.width * 0.9) : (1024 - tractor.width * 0.1);
+            console.log(`[Tractor] Loaded: ${tractorFile}, w=${tractor.width}, h=${tractor.height}, y=${tractor.y}`);
+        };
 
         this.projectiles.push(tractor);
         audio.playSpecial();
@@ -530,23 +577,41 @@ class Fighter {
         for (let i = this.projectiles.length - 1; i >= 0; i--) {
             const p = this.projectiles[i];
             if (p.active) {
-                p.x += p.vx;
-                if (!p.isTractor) p.animFrame++;
-
                 if (p.isTractor) {
-                    if (p.element) {
-                        // Como o #game-container já possui 1024x600 e faz o 'scale' nativamente no CSS via transform,
-                        // podemos usar as coordenadas reais diretamente.
-                        p.element.style.left = p.x + 'px';
-                        p.element.style.top = p.y + 'px';
-                        p.element.style.width = p.width + 'px';
-                        p.element.style.height = p.height + 'px';
+                    if (p.phase === 'moving_to_player') {
+                        p.x += p.vx;
+                        const reached = p.isRight ? (p.x >= p.targetX) : (p.x <= p.targetX);
+                        if (reached) {
+                            p.x = p.targetX;
+                            p.phase = 'waiting';
+                        }
+                    } else if (p.phase === 'waiting') {
+                        p.waitTimer--;
+                        if (p.waitTimer <= 0) {
+                            p.phase = 'moving_to_end';
+                        }
+                    } else {
+                        p.x += p.vx;
                     }
+
+                    if (p.element) {
+                        p.element.style.left = p.x + 'px';
+                    }
+                } else {
+                    p.x += p.vx;
+                    p.animFrame++;
                 }
 
                 // Remove se estiver fora da tela largamente
-                if (p.x < -1000 || p.x > stageWidth + 1000) {
-                    if (p.isTractor && p.element) p.element.remove();
+                // Para o trator, só remove na fase final (moving_to_end) para não
+                // matar o projétil prematuramente quando ele começa fora da tela
+                const isOffScreen = p.x < -1000 || p.x > stageWidth + 1000;
+                if (p.isTractor) {
+                    if (isOffScreen && p.phase === 'moving_to_end') {
+                        if (p.element) p.element.remove();
+                        this.projectiles.splice(i, 1);
+                    }
+                } else if (isOffScreen) {
                     this.projectiles.splice(i, 1);
                 }
             } else {
@@ -703,7 +768,7 @@ class Fighter {
 
     _drawFallback(ctx, x, y) {
         // Método procedural removido para forçar o uso de imagens de sprites.
-    } 
+    }
 
     _drawProjectile(ctx, p, projImage) {
         ctx.save();
