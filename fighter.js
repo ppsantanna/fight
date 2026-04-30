@@ -395,8 +395,13 @@ class Fighter {
         // Insert behind canvas
         gameScreen.insertBefore(img, gameCanvas);
 
+        // Converte groundY do espaço do canvas para CSS pixels (corrige no celular)
+        const canvasEl = gameCanvas;
+        const cssScaleY = canvasEl.getBoundingClientRect().height / canvasEl.height;
+        const cssScaleX = canvasEl.getBoundingClientRect().width / canvasEl.width;
+
         // Posicionamento visual: base da imagem alinhada ao chão
-        img.style.top = this.groundY + 'px';
+        img.style.top = (this.groundY * cssScaleY) + 'px';
         img.style.transformOrigin = 'bottom left';
         img.style.transform = (isRight ? 'scaleX(-1) ' : '') + 'translateY(-100%)';
 
@@ -404,11 +409,14 @@ class Fighter {
         const estWidth = 800;
         const estHeight = 300;
 
+        // Visibilidade de 25% ao parar: o adversário consegue ver parte do trator
+        const VISIBLE_FRACTION = 0.25;
+
         const tractor = {
             element: img,
             isRight: isRight,
+            // Start just off-screen (within the -1000 removal boundary to be safe)
             x: isRight ? -(estWidth) : 1024,
-            // Y para colisão: topo da imagem = groundY - altura da imagem
             y: this.groundY - estHeight,
             width: estWidth,
             height: estHeight,
@@ -417,20 +425,21 @@ class Fighter {
             active: true,
             isTractor: true,
             phase: 'moving_to_player',
-            // Parada: entrada de 25% da largura visível em tela (melhorado para o adversário ver)
-            targetX: isRight ? -(estWidth * 0.75) : (1024 - estWidth * 0.25),
+            // Para com 25% visível em tela
+            targetX: isRight ? -(estWidth * (1 - VISIBLE_FRACTION)) : (1024 - estWidth * VISIBLE_FRACTION),
             waitTimer: 120
         };
 
-        // Quando a imagem carregar, ajusta as dimensões reais para colisão precisa
+        // Quando a imagem carregar, ajusta dimensões reais (evita colisão errada com estimativas)
         img.onload = () => {
             tractor.width = img.naturalWidth;
             tractor.height = img.naturalHeight;
-            // Corrige Y de colisão para que a base toque no groundY
             tractor.y = this.groundY - tractor.height;
-            // Parada: entrada de 25% da largura visível em tela (melhorado para o adversário ver)
-            targetX: isRight ? -(tractor.width * 0.75) : (1024 - tractor.width * 0.25);
-            console.log(`[Tractor] Loaded: ${tractorFile}, w=${tractor.width}, h=${tractor.height}, y=${tractor.y}`);
+            // Recalcula ponto de parada com largura real da imagem
+            tractor.targetX = isRight
+                ? -(tractor.width * (1 - VISIBLE_FRACTION))
+                : (1024 - tractor.width * VISIBLE_FRACTION);
+            console.log(`[Tractor] Loaded: ${tractorFile} | w=${tractor.width} h=${tractor.height} targetX=${tractor.targetX}`);
         };
 
         this.projectiles.push(tractor);
@@ -595,7 +604,11 @@ class Fighter {
                     }
 
                     if (p.element) {
-                        p.element.style.left = p.x + 'px';
+                        // Converte coordenadas do canvas (0-1024) para CSS pixels reais
+                        // Isso corrige o posicionamento no celular onde o canvas é escalado
+                        const canvas = document.getElementById('game-canvas');
+                        const scaleX = canvas ? (canvas.getBoundingClientRect().width / canvas.width) : 1;
+                        p.element.style.left = (p.x * scaleX) + 'px';
                     }
                 } else {
                     p.x += p.vx;
